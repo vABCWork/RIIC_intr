@@ -554,14 +554,6 @@ void riic_sd_start(void)
 //
 //      転送速度= 1 / { ( (ICBRH + 1) + (ICBRL + 1) ) / (IIC Phy) + SCLn ライン立ち上がり時間(tr) + SCLn ライン立ち下がり時間(tf) }
 //
-//     
-//
-//     1) IIC内部基準クロック(IIC Phy) = 4MHz = (32/8)MHz の場合
-//     　 ICBRH=15(0xEF), ICBRL=18(0xF2)
-//   
-//        SCL0ラインの立ち上がり時間(tr)を1000 ns、SCL0ラインの立ち下がり時間(tf)を300 ns
-//
-//       転送速度 = 1 / { (15+1+18+1)/(4 MHz) + 1000nsec+300nsec} = 1 / ( 8.75usec + 1.3usec) = 1/(10.05usec) => 99.5 Kbps
 //       (資料の  29.2.14 I2C バスビットレートHigh レジスタ(ICBRH)　より)
 //
 //     ( 資料:「 RX23E-Aグループ ユーザーズマニュアル　ハードウェア編」 (R01UH0801JJ0120 Rev.1.20)） 
@@ -576,10 +568,24 @@ void RIIC0_Init(void)
 		
 	RIIC0.ICSER.BYTE = 0x00;    // I2Cバスステータス許可レジスタ （マスタ動作のためスレーブ設定は無効)	
 	
-				    //  通信速度 = 100 kbps 
+				    //  通信速度 = 100 kbps (オシロ測定値 102.6 kbps)
+//	RIIC0.ICMR1.BIT.CKS = 3;    // RIICの内部基準クロック = 32/8 = 4 MHz　
+//	RIIC0.ICBRH.BIT.BRH = 0xEF; // 資料の　「表29.5 転送速度に対するICBRH、ICBRLレジスタの設定例」より (PCLK=PCLKB=32[MHz])
+//	RIIC0.ICBRL.BIT.BRL = 0xF2;
+	
+				    // Fast mode 専用 通信速度 = 400 kbps
+				    // オシロで 390 kbos
+//	RIIC0.ICMR1.BIT.CKS = 1;    // RIICの内部基準クロック = 32/2 = 16 MHz　
+//	RIIC0.ICBRH.BIT.BRH = 0xEE; // 
+//	RIIC0.ICBRL.BIT.BRL = 0xF4;
+	
+	
+				    //  通信速度 = 100 kbps (オシロ測定値 97.6 kbps)
 	RIIC0.ICMR1.BIT.CKS = 3;    // RIICの内部基準クロック = 32/8 = 4 MHz　
-	RIIC0.ICBRH.BIT.BRH = 0xEF; // 資料の　「表29.5 転送速度に対するICBRH、ICBRLレジスタの設定例」より (PCLK=PCLKB=32[MHz])
-	RIIC0.ICBRL.BIT.BRL = 0xF2;
+	RIIC0.ICBRH.BIT.BRH = 0xF0; // 
+	RIIC0.ICBRL.BIT.BRL = 0xF3;
+	
+	
 	
 	RIIC0.ICMR3.BIT.ACKWP = 1;	// ACKBTビットへの書き込み許可		
 						
